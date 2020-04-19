@@ -1,52 +1,37 @@
 package com.fiqrikece.webinaraej.network
 
-object Network {
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
-    private fun provideLoggingInterceptor(): HttpLoggingInterceptor {
+class Network {
 
-        /**
-         * @BODY if you need show all response
-         * @BASIC only show end_point response
-         * @NONE nothing
-         * */
-        val loggingInterceptor = HttpLoggingInterceptor()
-        loggingInterceptor.level = if (BuildConfig.DEBUG) {
-            HttpLoggingInterceptor.Level.BODY
-        } else {
-            HttpLoggingInterceptor.Level.NONE
+    companion object {
+
+        fun create(baseUrl : String): Routes {
+
+            val BASEURL ="https://script.google.com/macros/s/AKfycbzctxBEOf7kp94IBYM0GVQOmIYVgAiTScj_6iKh9ITGh8m2MRLp/"
+
+
+            val interceptor = HttpLoggingInterceptor()
+            interceptor.level = HttpLoggingInterceptor.Level.BODY
+
+            val httpClient = OkHttpClient.Builder()
+                .connectTimeout(60, TimeUnit.SECONDS)
+                .readTimeout(60L, TimeUnit.SECONDS)
+                .writeTimeout(60L, TimeUnit.SECONDS)
+                .addInterceptor(interceptor)
+                .build()
+
+            val retrofit = Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(baseUrl)
+                .client(httpClient)
+                .build()
+            return retrofit.create(Routes::class.java)
+
         }
-        return loggingInterceptor
     }
-
-    private fun provideOkHttpClient(): OkHttpClient {
-        return OkHttpClient.Builder()
-            .addInterceptor(NetworkInterceptor())
-            .addInterceptor(provideLoggingInterceptor())
-            .retryOnConnectionFailure(false)
-            .connectTimeout(10, TimeUnit.SECONDS)
-            .writeTimeout(10, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .build()
-    }
-
-    private fun provideRetrofit(url: String = BuildConfig.BASE_URL): Retrofit {
-
-        /**
-         * setFieldNamingPolicy()
-         * for convert lowercase with underscores
-         * json:`user_name`, you can use `userName` as variable
-         */
-        val gson = GsonBuilder()
-            .setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
-            .setLenient()
-            .create()
-
-        return Retrofit.Builder()
-            .baseUrl(url)
-            .addConverterFactory(GsonConverterFactory.create(gson))
-            .client(provideOkHttpClient())
-            .build()
-    }
-
-    fun getRoutes(): Routes = provideRetrofit().create(Routes::class.java)
 }
