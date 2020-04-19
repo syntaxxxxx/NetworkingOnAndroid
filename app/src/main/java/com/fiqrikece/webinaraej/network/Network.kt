@@ -12,9 +12,6 @@ class Network {
 
         fun create(baseUrl : String): Routes {
 
-            val BASEURL ="https://script.google.com/macros/s/AKfycbzctxBEOf7kp94IBYM0GVQOmIYVgAiTScj_6iKh9ITGh8m2MRLp/"
-
-
             val interceptor = HttpLoggingInterceptor()
             interceptor.level = HttpLoggingInterceptor.Level.BODY
 
